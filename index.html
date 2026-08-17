@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>Ahad Smartphone — Attendance</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:#f3f4f6;color:#111827}
+.wrap{max-width:720px;margin:auto;padding:18px}
+.card{background:#fff;border-radius:20px;padding:22px;margin:14px 0;box-shadow:0 8px 30px #00000012}
+h1{margin:0 0 6px;font-size:27px}.sub{color:#6b7280;margin:0 0 18px}
+label{display:block;font-weight:700;margin:14px 0 7px}
+input,button{width:100%;padding:13px;border-radius:12px;border:1px solid #d1d5db;font-size:16px}
+button{background:#111827;color:white;border:0;font-weight:700;cursor:pointer;margin-top:14px}
+button.secondary{background:#e5e7eb;color:#111827}
+button:disabled{opacity:.55;cursor:not-allowed}
+#preview{width:100%;max-height:360px;object-fit:cover;border-radius:14px;background:#111827;display:none}
+.status{padding:12px;border-radius:12px;background:#f9fafb;margin-top:12px;font-size:14px}
+.ok{color:#047857}.warn{color:#b45309}.err{color:#b91c1c}
+#qrcode{display:flex;justify-content:center;padding:15px}
+.small{font-size:12px;color:#6b7280;word-break:break-word}
+.notice{background:#eff6ff;color:#1d4ed8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="card">
+<h1>Ahad Smartphone</h1>
+<p class="sub">Employee Attendance Portal</p>
+<div class="status notice"><b>Central attendance:</b> After submission, the attendance record and selfie are sent to the connected Google Sheet / Google Drive.</div>
+</div>
+
+<div class="card">
+<h2>Attendance QR</h2>
+<div id="qrcode"></div>
+<p class="small">Scan this QR to open the attendance page.</p>
+</div>
+
+<div class="card">
+<h2>Mark Attendance</h2>
+
+<label for="employee">Employee Name / ID</label>
+<input id="employee" placeholder="e.g. Jimmy / AS-001" autocomplete="name">
+
+<label>Selfie</label>
+<video id="video" autoplay playsinline style="width:100%;border-radius:14px;background:#111827;display:none"></video>
+<img id="preview" alt="Selfie preview">
+<canvas id="canvas" style="display:none"></canvas>
+<button id="cameraBtn" type="button" class="secondary">Open Camera</button>
+<button id="captureBtn" type="button" style="display:none">Capture Selfie</button>
+
+<label>Location</label>
+<div id="location" class="status">Location not captured.</div>
+<button id="locationBtn" type="button" class="secondary">Get Current Location</button>
+
+<label>Timestamp</label>
+<div id="clock" class="status"></div>
+
+<button id="submitBtn" type="button">SUBMIT ATTENDANCE</button>
+<div id="result" class="status" style="display:none"></div>
+</div>
+
+<div class="card">
+<h2>Central Record</h2>
+<p class="small">Attendance is submitted to the Google Sheet configured by the administrator.</p>
+</div>
+</div>
+
+<script>
+"use strict";
+
+/* PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BETWEEN THE QUOTES BELOW */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx53251nLSKCgDmwdfvArn0a1uZ_5YRhMB7eDzZi0ZvIsYAHiFH7BQcl3w4kTO_AzNsaA/exec";
+
+const $=id=>document.getElementById(id);
+let stream=null,selfieData="",coords=null;
+
+function show(msg,cls=""){
+ const r=$("result");r.style.display="block";r.className="status "+cls;r.textContent=msg;
+}
+function tick(){
+ $("clock").textContent=new Intl.DateTimeFormat("en-IN",{dateStyle:"full",timeStyle:"medium",hour12:true}).format(new Date());
+}
+setInterval(tick,1000);tick();
+
+try{
+ if(window.QRCode)new QRCode($("qrcode"),{text:location.href,width:210,height:210,correctLevel:QRCode.CorrectLevel.M});
+}catch(e){}
+
+$("cameraBtn").onclick=async()=>{
+ try{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+   show("Camera is unavailable. Open the HTTPS website in Chrome.","err");return;
+  }
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
+  $("video").srcObject=stream;$("video").style.display="block";$("preview").style.display="none";
+  $("cameraBtn").style.display="none";$("captureBtn").style.display="block";
+  show("Camera ready. Tap Capture Selfie.","ok");
+ }catch(e){show("Camera permission was denied. Allow Camera permission in Chrome.","err");}
+};
+
+$("captureBtn").onclick=()=>{
+ const v=$("video"),c=$("canvas");
+ c.width=v.videoWidth||720;c.height=v.videoHeight||960;
+ c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+ selfieData=c.toDataURL("image/jpeg",0.75);
+ $("preview").src=selfieData;$("preview").style.display="block";$("video").style.display="none";
+ if(stream)stream.getTracks().forEach(t=>t.stop());
+ stream=null;$("captureBtn").style.display="none";$("cameraBtn").style.display="block";
+ $("cameraBtn").textContent="Retake Selfie";show("Selfie captured.","ok");
+};
+
+$("locationBtn").onclick=()=>{
+ if(!navigator.geolocation){show("Location is not supported by this browser.","err");return}
+ $("location").textContent="Requesting location permission…";
+ navigator.geolocation.getCurrentPosition(p=>{
+  coords={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy};
+  $("location").innerHTML='<span class="ok"><b>Location captured.</b> Accuracy: ±'+Math.round(coords.accuracy)+' m<br>'+coords.lat.toFixed(6)+", "+coords.lng.toFixed(6)+'</span>';
+  show("Location captured.","ok");
+ },()=>{
+  $("location").textContent="Location not captured.";
+  show("Location permission was denied. Allow Location permission in Chrome.","err");
+ },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+};
+
+$("submitBtn").onclick=async()=>{
+ try{
+  const employee=$("employee").value.trim();
+  if(!employee){show("Please enter the employee name or ID.","err");return}
+  if(!selfieData){show("Please capture the selfie first.","err");return}
+  if(!coords){show("Please capture your current location first.","err");return}
+  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PASTE_YOUR")){
+   show("Google Sheet is not connected yet. Add the Apps Script Web App URL to index.html.","err");return;
+  }
+
+  const btn=$("submitBtn");
+  btn.disabled=true;btn.textContent="SUBMITTING…";
+  show("Sending attendance to Google Sheet…","warn");
+
+  const payload={
+   employee:employee,
+   timestamp:new Date().toISOString(),
+   location:coords,
+   selfie:selfieData
+  };
+
+  /*
+   no-cors is intentional. Apps Script receives the POST, while the browser
+   does not expose the response to this page due to cross-origin rules.
+  */
+  await fetch(APPS_SCRIPT_URL,{
+   method:"POST",
+   mode:"no-cors",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body:JSON.stringify(payload)
+  });
+
+  show("✓ ATTENDANCE SUBMITTED SUCCESSFULLY","ok");
+  $("employee").value="";
+  selfieData="";coords=null;
+  $("preview").style.display="none";
+  $("location").textContent="Location not captured.";
+  $("cameraBtn").textContent="Open Camera";
+
+ }catch(e){
+  show("Submission failed. Check your internet connection and Apps Script deployment.","err");
+ }finally{
+  $("submitBtn").disabled=false;$("submitBtn").textContent="SUBMIT ATTENDANCE";
+ }
+};
+</script>
+</body>
+</html>
