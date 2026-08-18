@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>Ahad Smartphone — Selfie Attendance</title>
+<style>
+*{box-sizing:border-box}
+:root{--gold:#d99a16;--gold2:#ffd45a;--gold3:#9b6505;--black:#050505;--panel:#0d0d0d;--line:#3a2a0b;--muted:#aaa;--danger:#ff6868;--ok:#5ee28a}
+html,body{margin:0;min-height:100%;background:#000;color:#fff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+body{background:radial-gradient(circle at 50% -10%,#2a1d06 0,#080808 32%,#000 72%);overflow-x:hidden}
+.wrap{width:min(100%,720px);margin:auto;padding:18px 14px 34px}
+.card{background:linear-gradient(180deg,#111 0,#080808 100%);border:1px solid var(--line);border-radius:28px;padding:20px;margin:13px 0;box-shadow:0 18px 55px rgba(0,0,0,.55);animation:rise .55s ease both}
+.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.16s}
+.hero{text-align:center;padding:18px 14px 22px;overflow:hidden;position:relative}
+.hero:before{content:"";position:absolute;inset:-50%;background:radial-gradient(circle,#d99a1620 0,transparent 42%);animation:pulse 4s ease-in-out infinite;pointer-events:none}
+.logo-mark{position:relative;width:170px;height:112px;margin:2px auto 10px;border-radius:30px;overflow:hidden;border:2px solid #d99a1680;background:#050505;display:grid;place-items:center;box-shadow:0 0 0 7px #d99a1610,0 14px 40px #d99a1630;animation:float 3.2s ease-in-out infinite}
+.logo-img{width:100%;height:100%;object-fit:cover;object-position:center 48%;display:block;filter:drop-shadow(0 0 14px #d99a1630);transform:scale(1.02);transition:transform .3s ease}
+.logo-mark:hover .logo-img{transform:scale(1.06)}
+.logo-mark:after{content:"";position:absolute;inset:0;border-radius:30px;box-shadow:inset 0 0 0 1px #ffd45a35;pointer-events:none}
+.brand-title{position:relative;font-size:27px;font-weight:900;letter-spacing:.08em;color:var(--gold2);margin:0}
+.brand-sub{position:relative;margin:7px 0 0;color:#f2f2f2;letter-spacing:.18em;font-size:12px;font-weight:800}
+.tagline{margin:17px auto 0;padding-top:12px;border-top:1px solid #8a5d0c;color:var(--gold2);font-size:11px;font-weight:800;letter-spacing:.16em}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;position:relative}
+.feature{padding:9px 5px;border-right:1px solid #6b4808}.feature:last-child{border-right:0}.feature-icon{font-size:25px;color:var(--gold2)}.feature span{display:block;font-size:9px;font-weight:800;letter-spacing:.07em;color:#eee;margin-top:4px}
+h2{margin:0 0 12px;font-size:20px}.gold{color:var(--gold2)}
+.status{padding:13px 14px;border-radius:16px;background:#121212;border:1px solid #292929;color:#d7d7d7;font-size:13px;line-height:1.45}.ok{color:var(--ok)}.warn{color:#ffc857}.err{color:var(--danger)}
+.location-card{border-color:#4c3307;background:linear-gradient(135deg,#0f0d08,#090909)}
+.store-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.store{border:1px solid #3a2a0b;border-radius:17px;padding:12px;background:#0a0a0a}.store b{color:var(--gold2)}.store small{display:block;color:#999;margin-top:3px}
+input,button{width:100%;font:inherit;border-radius:16px;padding:14px;border:1px solid #3b3b3b}
+input{background:#090909;color:#fff;outline:none}input:focus{border-color:var(--gold);box-shadow:0 0 0 4px #d99a1618}
+button{margin-top:11px;background:linear-gradient(135deg,#a96f05,#f1b928);color:#050505;border:0;font-weight:950;letter-spacing:.04em;cursor:pointer;box-shadow:0 10px 24px #d99a1620;transition:.18s}button:hover{transform:translateY(-1px)}button:active{transform:scale(.985)}button.secondary{background:#151515;color:var(--gold2);border:1px solid #5c400a;box-shadow:none}.danger-btn{background:linear-gradient(135deg,#5c1212,#a92828);color:#fff}
+.camera-wrap{position:relative;width:100%;aspect-ratio:3/4;background:#050505;border-radius:24px;overflow:hidden;border:1px solid #3b2a0b;margin-top:10px;display:none}
+#video,#preview{width:100%;height:100%;object-fit:cover;display:block}
+#video{transform:scaleX(-1)}
+#preview{display:none;transform:scaleX(-1)}
+.face-guide{position:absolute;inset:0;pointer-events:none;display:grid;place-items:center}.face-guide .circle{width:min(68vw,260px);height:min(68vw,260px);border:3px solid var(--gold2);border-radius:50%;box-shadow:0 0 0 999px #0005,0 0 30px #d99a1655;position:relative}.face-guide .circle{transition:border-color .2s,box-shadow .2s;}
+.face-guide .circle:after{content:"CENTER FACE HERE";position:absolute;bottom:-34px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;font-weight:900;letter-spacing:.13em;color:#fff;text-shadow:0 1px 8px #000}.guide-ok .circle{border-color:var(--ok);box-shadow:0 0 0 999px #0005,0 0 32px #5ee28a66}.guide-ok .circle:after{content:"GOOD — READY TO CAPTURE";color:var(--ok)}
+.camera-note{text-align:center;color:#aaa;font-size:12px;margin:10px 0 0}.camera-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.hidden{display:none!important}
+.result{margin-top:12px}.outside{border-color:#6b1c0c;background:linear-gradient(135deg,#1b0b08,#0c0808)}
+.quote{margin-top:12px;padding:17px;border-radius:19px;border:1px solid #6b4808;background:linear-gradient(135deg,#1b1408,#0d0d0d);text-align:center;animation:pop .35s ease}.quote .emoji{font-size:34px}.quote p{margin:7px 0;font-size:16px;font-weight:850;line-height:1.4}.quote small{color:#aaa}
+.success-overlay{display:none;position:fixed;inset:0;background:#000b;z-index:50;place-items:center;padding:20px}.success-box{width:min(420px,100%);background:#0d0d0d;border:1px solid #72500e;border-radius:28px;padding:28px;text-align:center;box-shadow:0 30px 90px #000}.success-icon{font-size:62px;animation:bounce .8s}.success-box h2{color:var(--gold2)}
+.footer{text-align:center;color:#777;font-size:10px;letter-spacing:.08em;padding:10px}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(1deg)}}@keyframes pulse{0%,100%{transform:scale(.8);opacity:.5}50%{transform:scale(1);opacity:1}}@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}@keyframes bounce{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@media(max-width:480px){.wrap{padding:10px}.card{border-radius:24px;padding:17px}.brand-title{font-size:23px}.logo-mark{width:102px;height:102px}.logo-text{font-size:31px}.store-grid{grid-template-columns:1fr}.camera-actions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="card hero">
+    <div class="logo-mark"><img class="logo-img" src="ahad-logo.png" alt="AHAD Smart Phone logo"></div>
+    <h1 class="brand-title">AHAD SMART PHONE</h1>
+    <div class="brand-sub">SELFIE ATTENDANCE</div>
+    <div class="features">
+      <div class="feature"><div class="feature-icon">📸</div><span>AUTO SELFIE</span></div>
+      <div class="feature"><div class="feature-icon">📍</div><span>AUTO LOCATION</span></div>
+      <div class="feature"><div class="feature-icon">🛡️</div><span>SECURE &amp; RELIABLE</span></div>
+    </div>
+    <div class="tagline">SMART ATTENDANCE, SIMPLE &amp; SECURE</div>
+  </section>
+
+  <section class="card location-card">
+    <h2>📍 <span class="gold">Store Verification</span></h2>
+    <div id="location" class="status">Checking your location automatically…</div>
+    <div class="store-grid">
+      <div class="store"><b>UNIT 1</b><small>Ahad Smartphone</small></div>
+      <div class="store"><b>UNIT 2</b><small>Ahad Smartphone</small></div>
+    </div>
+    <div id="outsideBox" class="hidden"></div>
+  </section>
+
+  <section class="card">
+    <h2>👤 <span class="gold">Employee</span></h2>
+    <input id="employee" placeholder="Enter employee name / ID" autocomplete="name">
+
+    <h2 style="margin-top:20px">🤳 <span class="gold">Selfie Verification</span></h2>
+    <div id="cameraWrap" class="camera-wrap">
+      <video id="video" autoplay playsinline muted></video>
+      <img id="preview" alt="Captured selfie">
+      <div id="faceGuide" class="face-guide"><div class="circle"></div></div>
+    </div>
+    <div id="cameraNote" class="camera-note">Camera will open when you tap Start Camera.</div>
+    <div class="camera-actions">
+      <button id="cameraBtn" type="button">📷 START CAMERA</button>
+      <button id="captureBtn" type="button" class="secondary hidden">📸 CAPTURE NOW</button>
+    </div>
+    <button id="retakeBtn" type="button" class="secondary hidden">🔄 RETAKE SELFIE</button>
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <div id="result" class="status result hidden"></div>
+    <button id="submitBtn" type="button" disabled>✅ SUBMIT ATTENDANCE</button>
+  </section>
+
+  <div class="footer">AHAD SMARTPHONE • SELFIE ATTENDANCE</div>
+</div>
+
+<div id="successOverlay" class="success-overlay">
+  <div class="success-box">
+    <div class="success-icon">🎉</div>
+    <h2>Attendance Submitted!</h2>
+    <p>Your attendance has been recorded successfully.</p>
+    <button id="closeSuccess" type="button">DONE</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+<script>
+"use strict";
+const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbx53251nLSKCgDmwdfvArn0a1uZ_5YRhMB7eDzZi0ZvIsYAHiFH7BQcl3w4kTO_AzNsaA/exec";
+const STORES=[
+ {name:"Unit 1",lat:23.253571,lng:87.861044,map:"https://maps.app.goo.gl/xZ3hLwhZ2aKsMy148"},
+ {name:"Unit 2",lat:23.247295,lng:87.865975,map:"https://maps.app.goo.gl/Ai53EPDwb8g9tb6c8"}
+];
+const RADIUS=8;
+const $=id=>document.getElementById(id);
+let coords=null,selfieData="",stream=null,insideStore=false;
+const quotes=[
+ ["😤","Attendance is not a remote job. Please come inside the store!","The store is waiting… and it has zero patience."],
+ ["📍","Nice try! Your location says: ‘Not at the store.’","Walk into the 8-meter zone and try again."],
+ ["😂","GPS has spoken. You are officially too far away to be productive.","Come to the store, legend. Then submit."],
+ ["🚨","Attendance denied: location detected in the wild.","Return to store range ASAP and try again."],
+ ["😎","You found the internet, but not the store.","Get inside the 8-meter attendance zone."],
+ ["🙄","Boss mode activated: Where exactly is the store?","Come within 8 meters and we’ll talk attendance."]
+];
+function show(msg,cls=""){const r=$("result");r.className="status result "+cls;r.textContent=msg;r.classList.remove("hidden")}
+function distance(a,b,c,d){const R=6371000,toRad=x=>x*Math.PI/180;const dLat=toRad(c-a),dLon=toRad(d-b);const x=Math.sin(dLat/2)**2+Math.cos(toRad(a))*Math.cos(toRad(c))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function nearestStore(lat,lng){let best=null;for(const s of STORES){const d=distance(lat,lng,s.lat,s.lng);if(!best||d<best.distance)best={store:s,distance:d}}return best}
+function outsideMessage(best){const q=quotes[Math.floor(Math.random()*quotes.length)];$("outsideBox").innerHTML=`<div class="quote"><div class="emoji">${q[0]}</div><p>${q[1]}</p><small>${q[2]}</small><button type="button" class="secondary" onclick="window.open('${best.store.map}','_blank')">🗺️ GET STORE LOCATION</button></div>`;$("outsideBox").classList.remove("hidden")}
+function verifyLocation(){
+ if(!navigator.geolocation){$("location").innerHTML='<span class="err">Location is not supported by this browser.</span>';return}
+ $("location").textContent="Requesting precise location…";
+ navigator.geolocation.getCurrentPosition(p=>{
+  coords={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy};
+  const best=nearestStore(coords.lat,coords.lng);insideStore=best.distance<=RADIUS;
+  if(insideStore){
+   $("location").innerHTML=`<span class="ok"><b>✓ ${best.store.name} verified</b><br>${best.distance.toFixed(1)} m from store • GPS ±${Math.round(coords.accuracy)} m</span>`;
+   $("outsideBox").classList.add("hidden");show("Location verified. Starting selfie camera…","ok");
+   $("submitBtn").disabled=!selfieData;
+   if(!stream && !selfieData) setTimeout(()=>startCamera(),350);
+  }else{
+   $("location").innerHTML=`<span class="err"><b>✕ Outside store range</b><br>Nearest store: ${best.store.name} • ${Math.round(best.distance)} m away</span>`;
+   outsideMessage(best);show("Please go inside the store range and try attendance again.","err");$("submitBtn").disabled=true;
+  }
+ },err=>{$("location").innerHTML='<span class="err">Location permission is required. Please allow location access and reload the page.</span>';show("Location verification failed. Allow Location permission in Chrome.","err")},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+}
+let detector=null,detectTimer=null,stableSince=0,autoCaptureEnabled=true;
+async function loadFaceDetector(){
+ try{
+  if(window.FaceDetection){
+   detector=new FaceDetection({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`});
+   detector.setOptions({model:'short',minDetectionConfidence:.62});
+   detector.onResults(handleFaceResults);
+   return true;
+  }
+ }catch(e){}
+ return false;
+}
+function handleFaceResults(results){
+ if(!stream || !$('video').srcObject || !$('faceGuide')) return;
+ const face=results?.detections?.[0];
+ const circle=$('faceGuide').querySelector('.circle');
+ if(!face){$('faceGuide').classList.remove('guide-ok');stableSince=0;return}
+ const b=face.boundingBox;
+ const cx=b.xCenter, cy=b.yCenter, size=Math.max(b.width,b.height);
+ const centered=Math.abs(cx-.5)<.13 && Math.abs(cy-.50)<.16 && size>.18 && size<.62;
+ $('faceGuide').classList.toggle('guide-ok',centered);
+ if(centered){
+   if(!stableSince) stableSince=performance.now();
+   if(autoCaptureEnabled && performance.now()-stableSince>950) capture(true);
+ }else stableSince=0;
+}
+async function faceLoop(){
+ if(!stream || !detector) return;
+ try{await detector.send({image:$('video')});}catch(e){}
+ if(stream) detectTimer=requestAnimationFrame(faceLoop);
+}
+async function startCamera(){
+ try{
+  if(!navigator.mediaDevices?.getUserMedia){show("Camera is unavailable. Open this HTTPS page in Chrome.","err");return}
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:720},height:{ideal:960}},audio:false});
+  $('cameraWrap').style.display="block";$('video').style.display="block";$('preview').style.display="none";$('video').srcObject=stream;
+  $('cameraBtn').textContent="📷 CAMERA ON";$('captureBtn').classList.remove("hidden");$('cameraNote').textContent="Center your face inside the circle. It will capture automatically when you are correctly positioned.";
+  $('faceGuide').classList.remove('hidden');
+  show("Camera ready. Center your face for automatic capture.","ok");
+  await loadFaceDetector();
+  if(detector) faceLoop(); else $('cameraNote').textContent="Face guidance unavailable on this browser. Use Capture Now.";
+ }catch(e){show("Camera permission was denied. Allow Camera permission in Chrome.","err")}
+}
+function capture(auto=false){
+ if(!stream)return;
+ const v=$('video'),c=$('canvas');
+ if(!v.videoWidth)return;
+ c.width=v.videoWidth||720;c.height=v.videoHeight||960;
+ const ctx=c.getContext('2d');
+ // Mirror the saved image horizontally so the saved selfie matches the mirrored camera preview.
+ ctx.save();ctx.translate(c.width,0);ctx.scale(-1,1);ctx.drawImage(v,0,0,c.width,c.height);ctx.restore();
+ selfieData=c.toDataURL('image/jpeg',.9);
+ $('preview').src=selfieData;$('preview').style.display='block';$('video').style.display='none';$('faceGuide').classList.add('hidden');
+ if(detectTimer)cancelAnimationFrame(detectTimer);detectTimer=null;
+ stream.getTracks().forEach(t=>t.stop());stream=null;
+ $('captureBtn').classList.add('hidden');$('cameraBtn').classList.add('hidden');$('retakeBtn').classList.remove('hidden');
+ $('cameraNote').textContent=auto?'✓ Face centered — selfie captured automatically.':'Mirror selfie captured successfully.';
+ $('submitBtn').disabled=!insideStore;
+ show(insideStore?'Selfie captured. Ready to submit.':'Selfie captured, but store location must be verified first.',insideStore?'ok':'warn');
+}
+$("cameraBtn").onclick=startCamera;$("captureBtn").onclick=capture;$("retakeBtn").onclick=()=>{selfieData="";stableSince=0;autoCaptureEnabled=true;$("retakeBtn").classList.add("hidden");$("cameraBtn").classList.remove("hidden");$("cameraWrap").style.display="none";$("faceGuide").classList.remove("hidden");$("submitBtn").disabled=true;startCamera()};
+$("submitBtn").onclick=async()=>{
+ const employee=$("employee").value.trim();
+ if(!employee)return show("Please enter employee name / ID.","err");
+ if(!insideStore||!coords)return show("Attendance is available only inside the approved store range.","err");
+ if(!selfieData)return show("Please capture your selfie first.","err");
+ const btn=$("submitBtn");btn.disabled=true;btn.textContent="SUBMITTING…";
+ try{await fetch(APPS_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({employee,timestamp:new Date().toISOString(),location:coords,selfie:selfieData})});$("successOverlay").style.display="grid";show("Attendance submitted successfully.","ok");$("employee").value="";selfieData="";coords=null;insideStore=false;setTimeout(verifyLocation,800)}catch(e){show("Submission failed. Check internet connection and Apps Script deployment.","err")}finally{btn.disabled=!insideStore||!selfieData;btn.textContent="✅ SUBMIT ATTENDANCE"}
+};
+$("closeSuccess").onclick=()=>$("successOverlay").style.display="none";
+window.addEventListener("load",()=>setTimeout(verifyLocation,350));
+</script>
+</body>
+</html>
